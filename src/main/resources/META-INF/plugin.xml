@@ -1,0 +1,43 @@
+<!-- Plugin Configuration File. Read more: https://plugins.jetbrains.com/docs/intellij/plugin-configuration-file.html -->
+<idea-plugin>
+    <id>com.aitaskmanager.AiTaskManager</id>
+    <name>AI Task Manager</name>
+    <vendor url="https://www.yourcompany.com">YourCompany</vendor>
+
+    <description><![CDATA[
+        <h2>AI Task Manager</h2>
+        Orchestrates AI-driven, file-by-file investigations. Run an initial AI search to find candidate files,
+        then queue per-file follow-up tasks that execute one-by-one (or in parallel with a configurable thread cap).
+        <br><br>
+        <em>Supports Copilot CLI, Claude CLI, and the Claude API.</em>
+    ]]></description>
+
+    <depends>com.intellij.modules.platform</depends>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <toolWindow id="AI Task Manager"
+                    anchor="right"
+                    factoryClass="com.aitaskmanager.ui.AiTaskManagerToolWindowFactory"
+                    icon="com.aitaskmanager.icons.AiTaskManagerIcons.TOOL_WINDOW"/>
+
+        <applicationService serviceImplementation="com.aitaskmanager.settings.AiTaskManagerSettings"/>
+        <applicationService serviceImplementation="com.aitaskmanager.task.TaskExecutorService"/>
+        <applicationService serviceImplementation="com.aitaskmanager.task.TaskRegistry"/>
+        <applicationService serviceImplementation="com.aitaskmanager.log.LogService"/>
+
+        <notificationGroup id="AiTaskManager" displayType="BALLOON"/>
+    </extensions>
+
+    <actions>
+        <action id="AiTaskManager.SendFindResults"
+                class="com.aitaskmanager.action.SendFindResultsAction"
+                text="Send to AI Task Manager"
+                description="Send the current Find in Files results to the AI Task Manager search tab"
+                icon="com.aitaskmanager.icons.AiTaskManagerIcons.TOOL_WINDOW">
+            <add-to-group group-id="UsageView.Popup" anchor="last"/>
+        </action>
+    </actions>
+
+    <applicationListeners>
+    </applicationListeners>
+</idea-plugin>
