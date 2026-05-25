@@ -30,7 +30,8 @@ dependencies {
 intellijPlatform {
     pluginConfiguration {
         ideaVersion {
-            sinceBuild = "253"
+            sinceBuild = providers.gradleProperty("pluginSinceBuild")
+            untilBuild = providers.gradleProperty("pluginUntilBuild")
         }
     }
 
@@ -42,6 +43,11 @@ intellijPlatform {
 
     publishing {
         token = providers.environmentVariable("PUBLISH_TOKEN")
+        // Default channel: "default" (= stable on Marketplace). Override with the
+        // `PUBLISH_CHANNEL` env var (e.g. "eap", "beta") if you want a side channel.
+        channels = providers.environmentVariable("PUBLISH_CHANNEL")
+            .map { listOf(it) }
+            .orElse(listOf("default"))
     }
 }
 tasks.withType<RunIdeTask> {

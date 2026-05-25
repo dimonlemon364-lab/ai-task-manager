@@ -1,16 +1,61 @@
 <!-- Plugin Configuration File. Read more: https://plugins.jetbrains.com/docs/intellij/plugin-configuration-file.html -->
 <idea-plugin>
-    <id>com.aitaskmanager.AiTaskManager</id>
+    <id>com.aitaskmanager</id>
     <name>AI Task Manager</name>
-    <vendor url="https://www.yourcompany.com">YourCompany</vendor>
+    <vendor email="dimonlemon364@gmail.com" url="https://github.com/dimonlemon364-lab/ai-task-manager">dimonlemon364-lab</vendor>
 
     <description><![CDATA[
         <h2>AI Task Manager</h2>
-        Orchestrates AI-driven, file-by-file investigations. Run an initial AI search to find candidate files,
-        then queue per-file follow-up tasks that execute one-by-one (or in parallel with a configurable thread cap).
-        <br><br>
-        <em>Supports Copilot CLI, Claude CLI, and the Claude API.</em>
+        <p>
+          Orchestrate AI-driven, file-by-file investigations across your project — without ever leaving the IDE.
+          Run a single AI search to discover candidate files, then queue per-file follow-up tasks that execute
+          one-at-a-time or in parallel with full progress tracking, per-task logs, and ZIP export/import.
+        </p>
+
+        <h3>Highlights</h3>
+        <ul>
+          <li><b>Two-step workflow</b> — search prompt → file list → per-file follow-ups.</li>
+          <li><b>Tool window with three tabs</b>: Search (task list, action toolbar, progress + ETA), Log (live stream filterable by task), Configuration (provider, templates, exclusion globs, reset).</li>
+          <li><b>Configurable parallelism</b> — strictly serial by default, dial up to 64 worker threads.</li>
+          <li><b>Send to AI Task Manager</b> — contribute files from the IDE's Find in Files / Find Usages right-click menu (honours per-row exclude/uncheck state).</li>
+          <li><b>Round-trip ZIP export/import</b> — tasks <i>and</i> log lines are saved and restored.</li>
+          <li><b>Per-row "review log" icon</b> — jump straight to the Log tab filtered to that task.</li>
+        </ul>
+
+        <h3>Supported AI providers</h3>
+        <ul>
+          <li><b>Claude CLI</b> — <code>@anthropic-ai/claude-code</code> (recommended)</li>
+          <li><b>GitHub Copilot CLI</b> — via the <code>gh copilot</code> extension</li>
+<!--          <li><b>Claude API</b> — direct HTTP to <code>api.anthropic.com</code>, token stored in <code>PasswordSafe</code></li>-->
+        </ul>
+
+        <p>
+          Command templates use <code>{binary}</code>, <code>{prompt}</code>, <code>{file}</code> and
+          <code>{projectDir}</code> placeholders so you can fully control how the CLI is invoked.
+        </p>
+
+        <p>
+          Source &amp; docs: <a href="https://github.com/dimonlemon364-lab/ai-task-manager">github.com/dimonlemon364-lab/ai-task-manager</a>
+        </p>
     ]]></description>
+
+    <change-notes><![CDATA[
+        <h3>0.1.1 — Marketplace compatibility</h3>
+        <ul>
+          <li>Removed all <code>@ApiStatus.Internal</code> API references that the JetBrains Marketplace verifier rejects on upload.</li>
+          <li><b>"Send to AI Task Manager"</b> now prefers the rows you select in the Find Results panel before falling back to the full result set.</li>
+        </ul>
+
+        <h3>0.1.0 — Initial public release</h3>
+        <ul>
+          <li>AI Task Manager tool window with Search / Log / Configuration tabs.</li>
+          <li>Providers: Claude CLI and GitHub Copilot CLI.</li>
+          <li>Two-step workflow (search → per-file tasks), parallel execution, ETA, per-row play/stop/recycle and "review log" icon.</li>
+          <li>"Send to AI Task Manager" action in the Find in Files / Find Usages right-click menu.</li>
+          <li>Round-trip ZIP export/import — restores tasks AND log lines.</li>
+          <li>Configuration tab — provider templates with <code>{binary}/{prompt}/{file}/{projectDir}</code> placeholders, exclusion globs, search-output regex, Reset Configuration button.</li>
+        </ul>
+    ]]></change-notes>
 
     <depends>com.intellij.modules.platform</depends>
 
@@ -37,7 +82,4 @@
             <add-to-group group-id="UsageView.Popup" anchor="last"/>
         </action>
     </actions>
-
-    <applicationListeners>
-    </applicationListeners>
 </idea-plugin>

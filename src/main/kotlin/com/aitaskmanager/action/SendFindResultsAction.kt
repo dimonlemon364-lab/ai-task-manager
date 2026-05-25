@@ -69,17 +69,27 @@ class SendFindResultsAction : AnAction(
     }
 
     /**
-     * Prefers the active [UsageView] so we can honour per-node exclusion (checkbox state).
-     * Falls back to the data-context file list only when no UsageView is reachable.
+     * Selection priority:
+     *   1. **Explicit selection** in the action context (right-clicked rows in the
+     *      Find Results panel populate `CommonDataKeys.VIRTUAL_FILE_ARRAY`). When the
+     *      user wants to send a subset, this is the canonical way — selecting rows is
+     *      how IntelliJ already lets users pick a working set, and it doesn't depend
+     *      on any `@ApiStatus.Internal` checkbox-state plumbing.
+     *   2. **All non-excluded usages** from the active UsageView, using the public
+     *      [UsageView.getExcludedUsages] filter. Used when the user invokes the action
+     *      with nothing selected (e.g. from the plugin's own toolbar button).
      */
     private fun collectPaths(e: AnActionEvent, project: Project): List<String> {
+        val contextFiles = collectFromContext(e)
+        if (contextFiles.isNotEmpty()) return contextFiles
+
         val usageView = e.getData(UsageView.USAGE_VIEW_KEY)
             ?: UsageViewManager.getInstance(project).getSelectedUsageView()
         if (usageView != null) {
             val paths = FindResultsCollector.collectNonExcludedPaths(usageView)
             if (paths.isNotEmpty()) return paths
         }
-        return collectFromContext(e)
+        return emptyList()
     }
 
     private fun collectFromContext(e: AnActionEvent): List<String> {
