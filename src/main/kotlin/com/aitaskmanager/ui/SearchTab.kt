@@ -145,11 +145,11 @@ class SearchTab(
                 val cellBounds = list.getCellBounds(idx, idx) ?: return
                 val task = listModel.elementAt(idx)
 
-                val rowRight = cellBounds.x + cellBounds.width
-                val xFromRight = rowRight - e.point.x
+                val xFromLeft = e.point.x - cellBounds.x
                 val iconAreaWidth = TaskListCellRenderer.ACTION_AREA_WIDTH + TaskListCellRenderer.REVIEW_LOG_AREA_WIDTH
 
-                if (e.clickCount == 2 && xFromRight >= iconAreaWidth) {
+                // Double-click outside the icon area opens the file.
+                if (e.clickCount == 2 && xFromLeft >= iconAreaWidth) {
                     openFile(task)
                     e.consume()
                     return
@@ -157,13 +157,13 @@ class SearchTab(
 
                 if (e.clickCount != 1) return
 
-                // Rightmost icon (play/stop/recycle); to its left is the review-log icon.
+                // Both icons are pinned to the left.
                 when {
-                    xFromRight < TaskListCellRenderer.ACTION_AREA_WIDTH -> {
+                    xFromLeft < TaskListCellRenderer.ACTION_AREA_WIDTH -> {
                         handleRowAction(task)
                         e.consume()
                     }
-                    xFromRight < iconAreaWidth -> {
+                    xFromLeft < iconAreaWidth -> {
                         onReviewLog(task)
                         e.consume()
                     }

@@ -13,30 +13,28 @@ import javax.swing.Icon
 import javax.swing.JList
 import javax.swing.JPanel
 import javax.swing.ListCellRenderer
-import javax.swing.SwingConstants
 
 class TaskListCellRenderer : JPanel(BorderLayout()), ListCellRenderer<AiTask> {
 
-    private val stateLabel = JBLabel().apply { border = JBUI.Borders.emptyRight(8) }
+    private val stateLabel = JBLabel()
     private val pathLabel = JBLabel()
     private val reviewLogLabel = JBLabel().apply {
-        horizontalAlignment = SwingConstants.RIGHT
         toolTipText = "Review log (open Log tab filtered by this task)"
     }
-    private val actionLabel = JBLabel().apply {
-        horizontalAlignment = SwingConstants.RIGHT
-    }
-    private val rightStack = JPanel(FlowLayout(FlowLayout.RIGHT, JBUI.scale(6), 0)).apply {
+    private val actionLabel = JBLabel()
+
+    // All icons pinned LEFT so they stay visible even when the path is long.
+    private val leftStack = JPanel(FlowLayout(FlowLayout.LEFT, JBUI.scale(2), 0)).apply {
         isOpaque = false
-        add(reviewLogLabel)   // first — sits left of the action icon
-        add(actionLabel)      // last — rightmost (primary action)
+        add(actionLabel)
+        add(reviewLogLabel)
+        add(stateLabel)
     }
 
     init {
         border = JBUI.Borders.empty(4, 8)
-        add(stateLabel, BorderLayout.WEST)
+        add(leftStack, BorderLayout.WEST)
         add(pathLabel, BorderLayout.CENTER)
-        add(rightStack, BorderLayout.EAST)
         isOpaque = true
     }
 
