@@ -40,6 +40,14 @@
     ]]></description>
 
     <change-notes><![CDATA[
+        <h3>0.1.2 — Search improvements &amp; UI polish</h3>
+        <ul>
+          <li><b>Output file search</b> — new <code>{outputSearchCommand}</code> and <code>{outputSearchFile}</code> placeholders let the AI write search results to a temp file; the plugin reads and deletes it automatically, making large result sets reliable across all providers.</li>
+          <li><b>Drag-and-drop .txt files</b> onto the Search tab to bulk-load file paths directly into the task list.</li>
+          <li><b>Configuration tab</b> — two new fields per provider: <em>Output command</em> and <em>Output file</em>, pre-filled with sensible defaults.</li>
+          <li>UI polish: task list cell renderer and toolbar layout refined.</li>
+        </ul>
+
         <h3>0.1.1 — Marketplace compatibility</h3>
         <ul>
           <li>Removed all <code>@ApiStatus.Internal</code> API references that the JetBrains Marketplace verifier rejects on upload.</li>
