@@ -3,6 +3,7 @@ package com.aitaskmanager.ai
 import com.aitaskmanager.settings.CredentialStore
 import com.aitaskmanager.settings.ProviderConfig
 import com.aitaskmanager.task.AiTask
+import java.io.File
 import java.net.URI
 import java.net.http.HttpClient
 import java.net.http.HttpRequest
@@ -16,6 +17,16 @@ class ClaudeApiProvider(private val config: ProviderConfig) : AiProvider {
     }
 
     override fun searchFiles(prompt: String, onLog: (String) -> Unit, isCancelled: () -> Boolean): List<String> {
+        if (config.outputSearchCommand.isNotBlank() && config.outputSearchFile.isNotBlank()) {
+            val resolvedOutputSearchFile = config.outputSearchFile.replace("{projectDir}",
+                com.intellij.openapi.project.ProjectManager.getInstance().openProjects.firstOrNull()?.basePath ?: "")
+            val resolvedOutputCommand = config.outputSearchCommand.replace("{outputSearchFile}", resolvedOutputSearchFile)
+            call("$prompt; $resolvedOutputCommand", onLog, isCancelled)
+            val f = File(resolvedOutputSearchFile)
+            val paths = f.readLines().map { it.trim() }.filter { it.isNotEmpty() }.distinct()
+            f.delete()
+            return paths
+        }
         val text = call(prompt, onLog, isCancelled) ?: return emptyList()
         return text.lineSequence()
             .map { it.trim() }

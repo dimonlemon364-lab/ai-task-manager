@@ -47,11 +47,15 @@ class ConfigurationTab : JPanel(BorderLayout()) {
     private val copilotBinary = TextFieldWithBrowseButton().apply { text = settings.state.copilot.binaryPath }
     private val copilotSearchCommand = JBTextArea(settings.state.copilot.searchCommandTemplate, 3, 60)
     private val copilotTaskCommand = JBTextArea(settings.state.copilot.taskCommandTemplate, 3, 60)
+    private val copilotOutputCommand = JBTextField(settings.state.copilot.outputSearchCommand)
+    private val copilotOutputFile = JBTextField(settings.state.copilot.outputSearchFile)
 
     // claude cli
     private val claudeCliBinary = TextFieldWithBrowseButton().apply { text = settings.state.claudeCli.binaryPath }
     private val claudeCliSearchCommand = JBTextArea(settings.state.claudeCli.searchCommandTemplate, 3, 60)
     private val claudeCliTaskCommand = JBTextArea(settings.state.claudeCli.taskCommandTemplate, 3, 60)
+    private val claudeCliOutputCommand = JBTextField(settings.state.claudeCli.outputSearchCommand)
+    private val claudeCliOutputFile = JBTextField(settings.state.claudeCli.outputSearchFile)
 
     // claude api
     private val claudeApiUrl = JBTextField(settings.state.claudeApi.apiUrl)
@@ -59,6 +63,8 @@ class ConfigurationTab : JPanel(BorderLayout()) {
     private val claudeApiToken = JBPasswordField().apply {
         text = CredentialStore.getSecret(settings.state.claudeApi.credentialKey) ?: ""
     }
+    private val claudeApiOutputCommand = JBTextField(settings.state.claudeApi.outputSearchCommand)
+    private val claudeApiOutputFile = JBTextField(settings.state.claudeApi.outputSearchFile)
 
     init {
         copilotBinary.addBrowseFolderListener(
@@ -127,6 +133,8 @@ class ConfigurationTab : JPanel(BorderLayout()) {
         .addComponent(JBScrollPane(copilotSearchCommand).apply { preferredSize = Dimension(600, 60) })
         .addComponent(JBLabel("Task command template (use {binary}, {prompt}, {file}):"))
         .addComponent(JBScrollPane(copilotTaskCommand).apply { preferredSize = Dimension(600, 60) })
+        .addLabeledComponent(JBLabel("Output command:"), copilotOutputCommand)
+        .addLabeledComponent(JBLabel("Output file:"), copilotOutputFile)
         .panel
 
     private fun buildClaudeCliCard(): JPanel = FormBuilder.createFormBuilder()
@@ -135,12 +143,16 @@ class ConfigurationTab : JPanel(BorderLayout()) {
         .addComponent(JBScrollPane(claudeCliSearchCommand).apply { preferredSize = Dimension(600, 60) })
         .addComponent(JBLabel("Task command template (use {binary}, {prompt}, {file}):"))
         .addComponent(JBScrollPane(claudeCliTaskCommand).apply { preferredSize = Dimension(600, 60) })
+        .addLabeledComponent(JBLabel("Output command:"), claudeCliOutputCommand)
+        .addLabeledComponent(JBLabel("Output file:"), claudeCliOutputFile)
         .panel
 
     private fun buildClaudeApiCard(): JPanel = FormBuilder.createFormBuilder()
         .addLabeledComponent(JBLabel("API URL:"), claudeApiUrl)
         .addLabeledComponent(JBLabel("Model:"), claudeApiModel)
         .addLabeledComponent(JBLabel("API token:"), claudeApiToken)
+        .addLabeledComponent(JBLabel("Output command:"), claudeApiOutputCommand)
+        .addLabeledComponent(JBLabel("Output file:"), claudeApiOutputFile)
         .panel
 
     private fun buildInstructionsPanel(): JPanel {
@@ -193,14 +205,20 @@ class ConfigurationTab : JPanel(BorderLayout()) {
         s.copilot.binaryPath = copilotBinary.text
         s.copilot.searchCommandTemplate = copilotSearchCommand.text
         s.copilot.taskCommandTemplate = copilotTaskCommand.text
+        s.copilot.outputSearchCommand = copilotOutputCommand.text
+        s.copilot.outputSearchFile = copilotOutputFile.text
 
         s.claudeCli.binaryPath = claudeCliBinary.text
         s.claudeCli.searchCommandTemplate = claudeCliSearchCommand.text
         s.claudeCli.taskCommandTemplate = claudeCliTaskCommand.text
+        s.claudeCli.outputSearchCommand = claudeCliOutputCommand.text
+        s.claudeCli.outputSearchFile = claudeCliOutputFile.text
 
         s.claudeApi.apiUrl = claudeApiUrl.text
         s.claudeApi.model = claudeApiModel.text
         CredentialStore.setSecret(s.claudeApi.credentialKey, String(claudeApiToken.password))
+        s.claudeApi.outputSearchCommand = claudeApiOutputCommand.text
+        s.claudeApi.outputSearchFile = claudeApiOutputFile.text
 
         LogService.getInstance().append("Configuration saved")
         testOutput.text = "Saved."
@@ -235,14 +253,20 @@ class ConfigurationTab : JPanel(BorderLayout()) {
         copilotBinary.text = s.copilot.binaryPath
         copilotSearchCommand.text = s.copilot.searchCommandTemplate
         copilotTaskCommand.text = s.copilot.taskCommandTemplate
+        copilotOutputCommand.text = s.copilot.outputSearchCommand
+        copilotOutputFile.text = s.copilot.outputSearchFile
 
         claudeCliBinary.text = s.claudeCli.binaryPath
         claudeCliSearchCommand.text = s.claudeCli.searchCommandTemplate
         claudeCliTaskCommand.text = s.claudeCli.taskCommandTemplate
+        claudeCliOutputCommand.text = s.claudeCli.outputSearchCommand
+        claudeCliOutputFile.text = s.claudeCli.outputSearchFile
 
         claudeApiUrl.text = s.claudeApi.apiUrl
         claudeApiModel.text = s.claudeApi.model
         claudeApiToken.text = CredentialStore.getSecret(s.claudeApi.credentialKey) ?: ""
+        claudeApiOutputCommand.text = s.claudeApi.outputSearchCommand
+        claudeApiOutputFile.text = s.claudeApi.outputSearchFile
 
         (cards.layout as CardLayout).show(cards, s.activeProvider.name)
     }

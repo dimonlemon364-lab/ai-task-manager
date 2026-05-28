@@ -11,10 +11,14 @@ enum class AiProviderKind { COPILOT, CLAUDE_CLI, CLAUDE_API }
 
 class ProviderConfig {
     var binaryPath: String = ""
-    /** Template used by the initial file-search call. Supports {binary}, {prompt}, {projectDir}. */
+    /** Template used by the initial file-search call. Supports {binary}, {prompt}, {projectDir}, {outputSearchCommand}. */
     var searchCommandTemplate: String = ""
     /** Template used for per-file task execution. Supports {binary}, {prompt}, {file}, {projectDir}. */
     var taskCommandTemplate: String = ""
+    /** Instruction text injected via {outputSearchCommand}. May contain {outputSearchFile} which is substituted before insertion. When non-blank, plugin reads results from outputSearchFile after the process exits. */
+    var outputSearchCommand: String = ""
+    /** Path the AI is instructed to write search results to. Read line-by-line and deleted after search when outputSearchCommand is non-blank. */
+    var outputSearchFile: String = ""
     var apiUrl: String = ""
     var model: String = ""
     // Tokens are stored via PasswordSafe, NOT here. This field is only the credential id.
@@ -29,6 +33,8 @@ class ProviderConfig {
         if (binaryPath.isBlank()) binaryPath = defaults.binaryPath
         if (searchCommandTemplate.isBlank()) searchCommandTemplate = defaults.searchCommandTemplate
         if (taskCommandTemplate.isBlank()) taskCommandTemplate = defaults.taskCommandTemplate
+        if (outputSearchCommand.isBlank()) outputSearchCommand = defaults.outputSearchCommand
+        if (outputSearchFile.isBlank()) outputSearchFile = defaults.outputSearchFile
         if (apiUrl.isBlank()) apiUrl = defaults.apiUrl
         if (model.isBlank()) model = defaults.model
         if (credentialKey.isBlank()) credentialKey = defaults.credentialKey
@@ -43,13 +49,17 @@ class AiTaskManagerState {
 
     var copilot: ProviderConfig = ProviderConfig().apply {
         binaryPath = "gh"
-        searchCommandTemplate = "{binary} -s -p \"list files matching: {prompt}\""
-        taskCommandTemplate = "{binary} -s -p \"review and refactor {file};write result to file '.ai/`filename`.md'\""
+        searchCommandTemplate = "{binary} --model gpt-5-mini --allow-all  -s -p \"list files matching: {prompt}; {outputSearchCommand}\""
+        taskCommandTemplate = "{binary} -s -p \"review file {file};'\""
+        outputSearchCommand = "output should be {outputSearchFile}; overwrite output file; if you didn't find leave file empty;"
+        outputSearchFile = "{projectDir}/ai_tmp.txt"
     }
     var claudeCli: ProviderConfig = ProviderConfig().apply {
         binaryPath = "claude"
-        searchCommandTemplate = "{binary} -p \"list files matching: {prompt}\" --add-dir \"{projectDir}\""
-        taskCommandTemplate = "{binary} -p \"review file {file}; write result to file '.ai/`filename`.md'\" --add-dir \"{projectDir}\""
+        searchCommandTemplate = "{binary} --model \"haiku\" --effort low -p \"list files matching: {prompt}; {outputSearchCommand}\" --allowedTools \"Write\""
+        taskCommandTemplate = "{binary} -p \"review file {file};\""
+        outputSearchCommand = "output should be {outputSearchFile}; overwrite output file; if you didn't find leave file empty;"
+        outputSearchFile = "{projectDir}/ai_tmp.txt"
     }
     var claudeApi: ProviderConfig = ProviderConfig().apply {
         apiUrl = "https://api.anthropic.com/v1/messages"

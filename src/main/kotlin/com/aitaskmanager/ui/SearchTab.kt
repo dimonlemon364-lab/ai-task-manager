@@ -19,8 +19,10 @@ import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory
 import com.intellij.openapi.fileChooser.FileChooserFactory
 import com.intellij.openapi.fileChooser.FileSaverDescriptor
+import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VirtualFileWrapper
 import com.intellij.ui.components.JBList
 import com.intellij.ui.components.JBScrollPane
@@ -137,23 +139,43 @@ class SearchTab(
                 if (idx < 0) return
                 val cellBounds = list.getCellBounds(idx, idx) ?: return
                 val task = listModel.elementAt(idx)
+
+                val rowRight = cellBounds.x + cellBounds.width
+                val xFromRight = rowRight - e.point.x
+                val iconAreaWidth = TaskListCellRenderer.ACTION_AREA_WIDTH + TaskListCellRenderer.REVIEW_LOG_AREA_WIDTH
+
+                if (e.clickCount == 2 && xFromRight >= iconAreaWidth) {
+                    openFile(task)
+                    e.consume()
+                    return
+                }
+
                 if (e.clickCount != 1) return
 
                 // Rightmost icon (play/stop/recycle); to its left is the review-log icon.
-                val rowRight = cellBounds.x + cellBounds.width
-                val xFromRight = rowRight - e.point.x
                 when {
                     xFromRight < TaskListCellRenderer.ACTION_AREA_WIDTH -> {
                         handleRowAction(task)
                         e.consume()
                     }
-                    xFromRight < TaskListCellRenderer.ACTION_AREA_WIDTH + TaskListCellRenderer.REVIEW_LOG_AREA_WIDTH -> {
+                    xFromRight < iconAreaWidth -> {
                         onReviewLog(task)
                         e.consume()
                     }
                 }
             }
         })
+    }
+
+    private fun openFile(task: AiTask) {
+        val lfs = LocalFileSystem.getInstance()
+        val vf = lfs.findFileByPath(task.file)
+            ?: project.basePath?.let { lfs.findFileByPath("$it/${task.file}") }
+        if (vf != null && vf.isValid) {
+            FileEditorManager.getInstance(project).openFile(vf, true)
+        } else {
+            log.append("Cannot open file: ${task.file}")
+        }
     }
 
     private fun installListKeyHandler() {

@@ -21,12 +21,16 @@ abstract class CliProvider(private val config: ProviderConfig, private val displ
 
     override fun searchFiles(prompt: String, onLog: (String) -> Unit, isCancelled: () -> Boolean): List<String> {
         val projectDir = resolveProjectDir()
+        val resolvedOutputSearchFile = config.outputSearchFile.replace("{projectDir}", projectDir?.absolutePath ?: "")
+        val resolvedOutputCommand = config.outputSearchCommand.replace("{outputSearchFile}", resolvedOutputSearchFile)
         val cmd = ProcessRunner.buildCommand(
             config.searchCommandTemplate,
             mapOf(
                 "binary" to config.binaryPath,
                 "prompt" to prompt,
                 "projectDir" to (projectDir?.absolutePath ?: ""),
+                "outputSearchCommand" to resolvedOutputCommand,
+                "outputSearchFile" to resolvedOutputSearchFile,
             )
         )
         onLog("[$displayName] cwd: ${projectDir ?: "default"}")
@@ -35,6 +39,17 @@ abstract class CliProvider(private val config: ProviderConfig, private val displ
         if (result.exitCode != 0) {
             onLog("[$displayName] exit code ${result.exitCode}")
             return emptyList()
+        }
+        if (config.outputSearchCommand.isNotBlank() && resolvedOutputSearchFile.isNotBlank()) {
+            val f = File(resolvedOutputSearchFile)
+            if (!f.exists()) {
+                onLog("[$displayName] output file not found: $resolvedOutputSearchFile — no results")
+                return emptyList()
+            }
+            val paths = f.readLines().map { it.trim() }.filter { it.isNotEmpty() }.distinct()
+            f.delete()
+            if (paths.isEmpty()) onLog("[$displayName] output file was empty — no results")
+            return paths
         }
         val regex = Regex(AiTaskManagerSettings.getInstance().state.filePathRegex, RegexOption.MULTILINE)
         return regex.findAll(result.stdout)

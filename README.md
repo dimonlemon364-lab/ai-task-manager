@@ -268,6 +268,9 @@ Implementation notes and decision history live in [`.ai/plan.md`](./.ai/plan.md)
 
 ---
 
+LM Studio's API stop words:
+"stop": ["<|im_end|>", "<|im_start|>"]
+
 ## Useful links
 
 - [IntelliJ Platform SDK](https://plugins.jetbrains.com/docs/intellij)
