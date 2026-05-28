@@ -32,6 +32,7 @@ import com.intellij.util.ui.AsyncProcessIcon
 import com.intellij.util.ui.JBUI
 import java.awt.BorderLayout
 import java.awt.Dimension
+import java.awt.datatransfer.DataFlavor
 import java.awt.event.KeyAdapter
 import java.awt.event.KeyEvent
 import java.awt.event.MouseAdapter
@@ -44,6 +45,7 @@ import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.JProgressBar
 import javax.swing.SwingUtilities
+import javax.swing.TransferHandler
 
 class SearchTab(
     private val project: Project,
@@ -63,7 +65,9 @@ class SearchTab(
     private val list = JBList(listModel).apply {
         cellRenderer = TaskListCellRenderer()
         fixedCellHeight = 24
+        emptyText.text = "Drop a .txt file to import paths, or use Search above"
     }
+    private val scrollPane = JBScrollPane(list)
 
     private val searchCancel = AtomicBoolean(false)
     @Volatile private var searchRunning = false
@@ -71,12 +75,13 @@ class SearchTab(
     init {
         border = JBUI.Borders.empty(4)
         add(buildTopBar(), BorderLayout.NORTH)
-        add(JBScrollPane(list), BorderLayout.CENTER)
+        add(scrollPane, BorderLayout.CENTER)
         add(buildProgressBar(), BorderLayout.SOUTH)
 
         installSearchFieldBindings()
         installListMouseHandler()
         installListKeyHandler()
+        installDropHandler()
 
         registry.addListener(this)
         refreshFromRegistry()
@@ -413,6 +418,39 @@ class SearchTab(
         }
         val paths = com.aitaskmanager.action.FindResultsCollector.collectNonExcludedPaths(usageView)
         appendImportedFiles(paths)
+    }
+
+    private fun installDropHandler() {
+        val handler = object : TransferHandler() {
+            override fun canImport(support: TransferSupport): Boolean =
+                support.isDataFlavorSupported(DataFlavor.javaFileListFlavor)
+
+            override fun importData(support: TransferSupport): Boolean {
+                if (!canImport(support)) return false
+                @Suppress("UNCHECKED_CAST")
+                val files = try {
+                    support.transferable.getTransferData(DataFlavor.javaFileListFlavor) as List<File>
+                } catch (_: Exception) {
+                    return false
+                }
+                val txtFiles = files.filter { it.extension.lowercase() == "txt" }
+                if (txtFiles.isEmpty()) return false
+                val paths = txtFiles.flatMap { f ->
+                    f.readLines().map { it.trim() }.filter { it.isNotEmpty() && !it.startsWith("#") }
+                }
+                if (paths.isEmpty()) return false
+                val prompt = searchField.text?.trim().orEmpty()
+                val excluded = parseExcluded()
+                val filtered = paths.filterNot { p -> excluded.any { it.matches(p) } }
+                ApplicationManager.getApplication().invokeLater({
+                    registry.addAll(filtered.map { AiTask(file = it, prompt = prompt) })
+                    log.append("Dropped ${txtFiles.size} .txt file(s): imported ${filtered.size} path(s)")
+                }, ModalityState.any())
+                return true
+            }
+        }
+        list.transferHandler = handler
+        scrollPane.transferHandler = handler
     }
 
     fun dispose() {
