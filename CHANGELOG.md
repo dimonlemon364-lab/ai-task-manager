@@ -7,12 +7,14 @@
 ## [0.1.1] — Marketplace compatibility
 
 ### Fixed
+
 - Removed all `@ApiStatus.Internal` API references (`com.intellij.usages.impl.UsageNode`, `UsageViewImpl`, `UsageNode.isExcluded()`) that the JetBrains Marketplace verifier rejects on upload. `FindResultsCollector` now uses only public APIs (`UsageView.getExcludedUsages()` + `UsageInFile.getFile()`).
 - "Send to AI Task Manager" prioritises the data-context selection so users can pick a subset of Find Results rows; with nothing selected, the action sends every non-excluded usage from the active `UsageView`.
 
 ## [0.1.0] — Initial public release
 
 ### Added
+
 - **Tool window** "AI Task Manager" (right-side anchor) with three tabs: Search, Log, Configuration.
 - **Two-step workflow** — initial AI search returns a file list, each file becomes a task; per-file follow-ups run via `Run all` (skips already-completed) or the per-row play button.
 - **AI providers**:
@@ -28,8 +30,10 @@
 - **Reset Configuration** button — wipes all settings (including the Claude API token in `PasswordSafe`) back to built-in defaults, with confirmation dialog.
 
 ### Compatibility
+
 - IntelliJ Platform `2025.3.x` (build range `253` … `253.*`).
 - JBR 21.
 
-[Unreleased]: https://github.com/dimonlemon364-lab/ai-task-manager/compare/v0.1.0...HEAD
-[0.1.0]: https://github.com/dimonlemon364-lab/ai-task-manager/releases/tag/v0.1.0
+[Unreleased]: https://github.com/dimonlemon364-lab/ai-task-manager/compare/0.1.1...HEAD
+[0.1.1]: https://github.com/dimonlemon364-lab/ai-task-manager/compare/0.1.0...0.1.1
+[0.1.0]: https://github.com/dimonlemon364-lab/ai-task-manager/commits/0.1.0
